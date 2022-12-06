@@ -1,13 +1,14 @@
 import React, { useContext, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
-import { Link, useNavigate } from 'react-router-dom';
+import { json, Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../contexts/AuthProvider';
 
 const SignUp = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const { createUser, updateUser } = useContext(AuthContext);
     const [signUpError, setSignUPError] = useState('')
+    const [createdUserEmail, setCreatedUserEmail] = useState('')
     const navigate = useNavigate();
 
     const handleSignUp = (data) => {
@@ -22,6 +23,7 @@ const SignUp = () => {
                 }
                 updateUser(userInfo)
                     .then(() => {
+                        saveUser(data.name, data.email);
                         navigate('/');
                      })
                     .catch(err => console.log(err));
@@ -30,6 +32,30 @@ const SignUp = () => {
                 console.log(error)
                 setSignUPError(error.message)
             });
+           
+    const saveUser = (name, email) =>{
+        const user ={name, email};
+        fetch('https://doctors-protal-server-imishat.vercel.app/users', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify(user)
+        })
+        .then(res => res.json())
+        .then(data =>{
+            getUserToken(email)
+        })
+        const getUserToken=email=>{
+            fetch(`https://doctors-protal-server-imishat.vercel.app/jwt?email=${email}`)
+            .then(res=>res.json())
+            .then(data=>{
+                if(data.accessToken){
+                    localStorage.setItem('accesstoken',data.accessToken)
+                }
+            })
+        }
+    }
     }
 
     return (
